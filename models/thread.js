@@ -2,8 +2,8 @@
 const slug = require("slug");
 
 module.exports = (sequelize, DataTypes) => {
-  const thread = sequelize.define(
-    "thread",
+  const Thread = sequelize.define(
+    "Thread",
     {
       name: {
         type: DataTypes.STRING,
@@ -100,18 +100,18 @@ module.exports = (sequelize, DataTypes) => {
       }
     }
   );
-  thread.associate = function(models) {
+  Thread.associate = function(models) {
     // associations can be defined here
-    thread.belongsTo(models.User);
-    thread.belongsTo(models.Category);
-    thread.belongsTo(models.PollQuestion);
-    thread.hasMany(models.Post, {
+    Thread.belongsTo(models.User);
+    Thread.belongsTo(models.Category);
+    Thread.belongsTo(models.PollQuestion);
+    Thread.hasMany(models.Post, {
       foreignKeyConstraint: true,
       onDelete: "cascade"
     });
   };
 
-  thread.prototype.includeOptions = (from, limit) => {
+  Thread.prototype.includeOptions = (from, limit) => {
     const models = sequelize.models;
 
     return [
@@ -157,5 +157,5 @@ module.exports = (sequelize, DataTypes) => {
       }
     ];
   };
-  return thread;
+  return Thread;
 };

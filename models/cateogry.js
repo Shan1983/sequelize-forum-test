@@ -69,5 +69,5 @@ module.exports = (sequelize, DataTypes) => {
       }
     ];
   };
-  return Cateogry;
+  return Category;
 };
