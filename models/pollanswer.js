@@ -1,20 +1,20 @@
 "use strict";
 module.exports = (sequelize, DataTypes) => {
-  const PollQuestion = sequelize.define(
-    "PollQuestion",
+  const PollAnswer = sequelize.define(
+    "PollAnswer",
     {
-      question: {
+      answer: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
           len: {
             args: [1, 256],
-            msg: `The question must be between 1 and 256 characters`
+            msg: `The poll answer must be between 1 and 256 characters`
           },
           isString(val) {
             if (typeof val !== "string") {
               throw new sequelize.ValidationError(
-                `The question must be a string`
+                `The poll answer must be a string`
               );
             }
           }
@@ -23,10 +23,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     {}
   );
-  PollQuestion.associate = function(models) {
-    PollQuestion.belongsTo(models.User);
-    PollQuestion.hasMany(models.PollAnswer);
-    PollQuestion.hasMany(models.PollVote);
+  PollAnswer.associate = function(models) {
+    PollAnswer.hasMany(models.PollVote);
   };
-  return PollQuestion;
+  return PollAnswer;
 };
