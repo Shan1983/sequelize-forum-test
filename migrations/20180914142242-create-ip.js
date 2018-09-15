@@ -2,7 +2,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable(
-      "Ips",
+      "ips",
       {
         id: {
           allowNull: false,
