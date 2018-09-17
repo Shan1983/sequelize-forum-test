@@ -23,10 +23,7 @@ module.exports = (sequelize, DataTypes) => {
             msg: `route does not exist`
           }
         }
-      },
-      threadId: DataTypes.INTEGER,
-      userId: DataTypes.INTEGER,
-      sessionUserId: DataTypes.INTEGER
+      }
     },
     {}
   );
