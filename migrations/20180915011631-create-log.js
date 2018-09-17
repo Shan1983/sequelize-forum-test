@@ -2,7 +2,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable(
-      "adminTokens",
+      "logs",
       {
         id: {
           allowNull: false,
@@ -10,8 +10,26 @@ module.exports = {
           primaryKey: true,
           type: Sequelize.INTEGER
         },
-        token: {
-          type: Sequelize.STRING
+        route: {
+          type: Sequelize.ENUM([
+            "index",
+            "search",
+            "settingsAccount",
+            "settingsGeneral",
+            "thread",
+            "threadNew",
+            "userPosts",
+            "userThreads"
+          ])
+        },
+        threadId: {
+          type: Sequelize.INTEGER
+        },
+        userId: {
+          type: Sequelize.INTEGER
+        },
+        sessionUserId: {
+          type: Sequelize.INTEGER
         },
         createdAt: {
           allowNull: false,
@@ -28,6 +46,6 @@ module.exports = {
     );
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("adminTokens");
+    return queryInterface.dropTable("logs");
   }
 };

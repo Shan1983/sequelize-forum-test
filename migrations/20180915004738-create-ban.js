@@ -2,7 +2,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable(
-      "adminTokens",
+      "bans",
       {
         id: {
           allowNull: false,
@@ -10,8 +10,22 @@ module.exports = {
           primaryKey: true,
           type: Sequelize.INTEGER
         },
-        token: {
-          type: Sequelize.STRING
+        canCreatePosts: {
+          type: Sequelize.BOOLEAN
+        },
+        canCreateThreads: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: true
+        },
+        ipBanned: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
+        message: {
+          type: Sequelize.TEXT
+        },
+        userId: {
+          type: Sequelize.INTEGER
         },
         createdAt: {
           allowNull: false,
@@ -28,6 +42,6 @@ module.exports = {
     );
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("adminTokens");
+    return queryInterface.dropTable("bans");
   }
 };

@@ -2,7 +2,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable(
-      "adminTokens",
+      "notifications",
       {
         id: {
           allowNull: false,
@@ -10,8 +10,19 @@ module.exports = {
           primaryKey: true,
           type: Sequelize.INTEGER
         },
-        token: {
-          type: Sequelize.STRING
+        interacted: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
+        read: {
+          type: Sequelize.BOOLEAN,
+          defaltValue: false
+        },
+        type: {
+          type: Sequelize.ENUM("mention", "thread update", "reply")
+        },
+        userId: {
+          type: Sequelize.INTEGER
         },
         createdAt: {
           allowNull: false,
@@ -28,6 +39,6 @@ module.exports = {
     );
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("adminTokens");
+    return queryInterface.dropTable("notifications");
   }
 };

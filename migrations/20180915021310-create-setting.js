@@ -2,7 +2,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable(
-      "adminTokens",
+      "settings",
       {
         id: {
           allowNull: false,
@@ -10,7 +10,10 @@ module.exports = {
           primaryKey: true,
           type: Sequelize.INTEGER
         },
-        token: {
+        forumName: {
+          type: Sequelize.STRING
+        },
+        forumDescription: {
           type: Sequelize.STRING
         },
         createdAt: {
@@ -28,6 +31,6 @@ module.exports = {
     );
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("adminTokens");
+    return queryInterface.dropTable("settings");
   }
 };

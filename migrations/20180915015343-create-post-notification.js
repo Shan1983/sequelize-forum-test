@@ -2,7 +2,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable(
-      "adminTokens",
+      "postNotifications",
       {
         id: {
           allowNull: false,
@@ -10,8 +10,14 @@ module.exports = {
           primaryKey: true,
           type: Sequelize.INTEGER
         },
-        token: {
-          type: Sequelize.STRING
+        userId: {
+          type: Sequelize.INTEGER
+        },
+        postId: {
+          type: Sequelize.INTEGER
+        },
+        notificationId: {
+          type: Sequelize.INTEGER
         },
         createdAt: {
           allowNull: false,
@@ -28,6 +34,6 @@ module.exports = {
     );
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("adminTokens");
+    return queryInterface.dropTable("postNotifications");
   }
 };
