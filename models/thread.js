@@ -1,5 +1,5 @@
 "use strict";
-const slug = require("slug");
+const slug = require("slugify");
 
 module.exports = (sequelize, DataTypes) => {
   const Thread = sequelize.define(

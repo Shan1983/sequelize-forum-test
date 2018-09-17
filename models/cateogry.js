@@ -1,6 +1,6 @@
 "use strict";
 const randomColor = require("randomcolor");
-const slug = require("slug");
+const slug = require("slugify");
 
 module.exports = (sequelize, DataTypes) => {
   const Category = sequelize.define(
