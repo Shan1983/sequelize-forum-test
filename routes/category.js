@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const Errors = require("../lib/errors");
 const pagination = require("../lib/pagination");
+let Errors = require("../lib/errors");
 
 // get the required models
 const { Category, Post, Thread, User, Sequelize } = require("../models");
@@ -82,7 +82,7 @@ router.get("/:category", async (req, res, next) => {
     }
 
     if (!threads) {
-      throw Errors.invalidParameter("id", "category does not exists");
+      throw Errors.invalidParameter("category", "category does not exists");
     }
 
     if (Array.isArray(threads)) {
@@ -140,7 +140,7 @@ router.get("/:category", async (req, res, next) => {
     res.json(resThreads);
   } catch (e) {
     console.log(e);
-    next(e);
+    return res.json(e);
   }
 });
 
