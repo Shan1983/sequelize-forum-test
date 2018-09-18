@@ -138,9 +138,10 @@ router.get("/:category", async (req, res, next) => {
     }
 
     res.json(resThreads);
-  } catch (e) {
-    console.log(e);
-    return res.json(e);
+  } catch (err) {
+    console.log(err);
+    res.status(400);
+    return res.json(err);
   }
 });
 
