@@ -7,8 +7,21 @@ let Errors = require("../lib/errors");
 // get the required models
 const { Category, Post, Thread, User, Sequelize } = require("../models");
 
+// protect routes
+const auth = (req, res, next) => {
+  //   if (!req.session.admin) {
+  //     res.status(401);
+  //     res.json({
+  //       errors: [Errors.requestNotAuthorized]
+  //     });
+  //   } else {
+  //     next();
+  //   }
+  next();
+};
+
 // GET category index
-router.get("/", async (req, res) => {
+router.get("/", auth, async (req, res) => {
   try {
     const categories = await Category.findAll();
 
@@ -22,7 +35,7 @@ router.get("/", async (req, res) => {
 });
 
 // GET category by query
-router.get("/:category", async (req, res, next) => {
+router.get("/:category", auth, async (req, res, next) => {
   try {
     let threads, threadLatestPost, resThreads, user;
     const { from, limit } = pagination.getPaginationProps(req.query, true);
@@ -66,6 +79,7 @@ router.get("/:category", async (req, res, next) => {
       return [options];
     };
 
+    // return everything
     if (req.params.category === "ALL") {
       threads = await Thread.findAll(threadInclude("ASC")[0]);
       threadLatestPost = await Thread.findAll(threadInclude("DESC")[0]);
@@ -81,10 +95,13 @@ router.get("/:category", async (req, res, next) => {
       });
     }
 
+    // return category doesn't exist error
     if (!threads) {
       throw Errors.invalidParameter("category", "category does not exists");
     }
 
+    // check that threads is an array
+    // otherwise build up as json
     if (Array.isArray(threads)) {
       resThreads = {
         name: "All",
@@ -99,6 +116,10 @@ router.get("/:category", async (req, res, next) => {
       resThreads.meta = {};
     }
 
+    // get the first and latest post
+    // check if they match
+    // if they do quit.
+    // otherwise add them to the result thread array
     threadLatestPost.Threads.forEach((thread, i) => {
       const first = resThreads.Threads[i].Posts[0];
       const latest = thread.Posts[0];
@@ -110,6 +131,7 @@ router.get("/:category", async (req, res, next) => {
       resThreads.Threads[i].Posts.push(latest);
     });
 
+    // PAGINATION
     const nextId = await pagination.getNextIdDesc(
       Thread,
       user ? { userId: user.id } : {},
@@ -137,23 +159,35 @@ router.get("/:category", async (req, res, next) => {
       resThreads.meta.nextThreadsCount = 0;
     }
 
-    res.json(resThreads);
+    return res.json(resThreads);
   } catch (err) {
     console.log(err);
-    res.status(400);
-    return res.json(err);
+    next(err);
   }
 });
 
-// protect routes
-router.all("*", (req, res, next) => {
-  if (!req.session.admin) {
-    res.status(401);
-    res.json({
-      errors: [Errors.requestNotAuthorized]
+// POST new category
+router.post("/", auth, async (req, res) => {
+  try {
+    // try and create a new category
+    const category = await Category.create({
+      name: req.body.name,
+      // color is defaulted to a random color if empty
+      color: req.body.color
     });
-  } else {
-    next();
+
+    return res.json(category.toJSON());
+  } catch (e) {
+    console.log(e);
+    // check if its a constraint error
+    if (e.name === `SequelizeUniqueConstraintError`) {
+      res.status(400);
+      res.json({
+        errors: [Errors.categoryAlreadyExists]
+      });
+    } else {
+      next(e);
+    }
   }
 });
 

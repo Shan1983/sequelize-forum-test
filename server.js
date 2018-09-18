@@ -39,6 +39,9 @@ app.use(session);
 // routes
 app.use("/api/v1/category", require("./routes/category"));
 
+// general error handler
+app.use(require("./lib/errorHandler"));
+
 // set static assets
 
 // start everything up
