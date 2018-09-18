@@ -29,7 +29,7 @@ const session = expressSession({
   store: sessionStore
 });
 // set up the intial session
-sessionStore.sync();
+sessionStore.sync().then(response => console.log("database has been synced"));
 // set proxy if in production
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
