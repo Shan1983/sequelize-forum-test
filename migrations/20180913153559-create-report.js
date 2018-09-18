@@ -2,7 +2,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable(
-      "reports",
+      "Reports",
       {
         id: {
           allowNull: false,
@@ -26,7 +26,7 @@ module.exports = {
         flaggedByUserId: {
           type: Sequelize.INTEGER
         },
-        postId: {
+        PostId: {
           type: Sequelize.INTEGER
         },
         createdAt: {

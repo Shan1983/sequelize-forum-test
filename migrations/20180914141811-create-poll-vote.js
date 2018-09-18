@@ -2,7 +2,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable(
-      "pollVotes",
+      "PollVotes",
       {
         id: {
           allowNull: false,
@@ -10,13 +10,13 @@ module.exports = {
           primaryKey: true,
           type: Sequelize.INTEGER
         },
-        userId: {
+        UserId: {
           type: Sequelize.INTEGER
         },
-        pollAnswerId: {
+        PollAnswerId: {
           type: Sequelize.INTEGER
         },
-        pollQuestionId: {
+        PollQuestionId: {
           type: Sequelize.INTEGER
         },
         createdAt: {

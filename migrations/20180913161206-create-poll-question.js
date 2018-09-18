@@ -2,7 +2,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable(
-      "pollQuestions",
+      "PollQuestions",
       {
         id: {
           allowNull: false,
@@ -14,7 +14,7 @@ module.exports = {
           type: Sequelize.STRING,
           allowNull: false
         },
-        userId: {
+        UserId: {
           type: Sequelize.INTEGER
         },
         createdAt: {

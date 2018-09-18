@@ -2,7 +2,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable(
-      "notifications",
+      "Notifications",
       {
         id: {
           allowNull: false,
@@ -21,7 +21,7 @@ module.exports = {
         type: {
           type: Sequelize.ENUM("mention", "thread update", "reply")
         },
-        userId: {
+        UserId: {
           type: Sequelize.INTEGER
         },
         createdAt: {
@@ -39,6 +39,6 @@ module.exports = {
     );
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("notifications");
+    return queryInterface.dropTable("Notifications");
   }
 };

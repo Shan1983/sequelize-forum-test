@@ -2,7 +2,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable(
-      "postNotifications",
+      "PostNotifications",
       {
         id: {
           allowNull: false,
@@ -10,13 +10,13 @@ module.exports = {
           primaryKey: true,
           type: Sequelize.INTEGER
         },
-        userId: {
+        UserId: {
           type: Sequelize.INTEGER
         },
-        postId: {
+        PostId: {
           type: Sequelize.INTEGER
         },
-        notificationId: {
+        NotificationId: {
           type: Sequelize.INTEGER
         },
         createdAt: {
@@ -34,6 +34,6 @@ module.exports = {
     );
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("postNotifications");
+    return queryInterface.dropTable("PostNotifications");
   }
 };

@@ -2,7 +2,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable(
-      "threads",
+      "Threads",
       {
         id: {
           allowNull: false,
@@ -25,13 +25,13 @@ module.exports = {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
-        categoryId: {
+        CategoryId: {
           type: Sequelize.INTEGER
         },
-        userId: {
+        UserId: {
           type: Sequelize.INTEGER
         },
-        pollQuestionId: {
+        PollQuestionId: {
           type: Sequelize.INTEGER
         },
         createdAt: {
@@ -49,6 +49,6 @@ module.exports = {
     );
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("threads");
+    return queryInterface.dropTable("Threads");
   }
 };

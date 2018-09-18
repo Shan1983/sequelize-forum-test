@@ -2,12 +2,12 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.addColumn("profilePictures", "mimetype", {
+    return queryInterface.addColumn("ProfilePictures", "mimetype", {
       type: Sequelize.STRING
     });
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.removeColumn("profilePictures", "mimetype");
+    return queryInterface.removeColumn("ProfilePictures", "mimetype");
   }
 };
