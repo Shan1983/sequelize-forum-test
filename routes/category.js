@@ -8,7 +8,7 @@ let Errors = require("../lib/errors");
 const { Category, Post, Thread, User, Sequelize } = require("../models");
 
 // protect routes
-const auth = (req, res, next) => {
+router.all("*", (req, res, next) => {
   //   if (!req.session.admin) {
   //     res.status(401);
   //     res.json({
@@ -18,10 +18,10 @@ const auth = (req, res, next) => {
   //     next();
   //   }
   next();
-};
+});
 
 // GET category index
-router.get("/", auth, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const categories = await Category.findAll();
 
@@ -35,7 +35,7 @@ router.get("/", auth, async (req, res) => {
 });
 
 // GET category by query
-router.get("/:category", auth, async (req, res, next) => {
+router.get("/:category", async (req, res, next) => {
   try {
     let threads, threadLatestPost, resThreads, user;
     const { from, limit } = pagination.getPaginationProps(req.query, true);
@@ -167,7 +167,7 @@ router.get("/:category", auth, async (req, res, next) => {
 });
 
 // POST new category
-router.post("/", auth, async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     // try and create a new category
     const category = await Category.create({
@@ -188,6 +188,84 @@ router.post("/", auth, async (req, res) => {
     } else {
       next(e);
     }
+  }
+});
+
+// PUT - edit a category
+router.put("/:category_id", async (req, res, next) => {
+  try {
+    const id = req.params.category_id;
+    let obj = {};
+    // grab the req values if any
+    if (req.body.name) {
+      obj.name = req.body.name;
+    }
+
+    if (req.body.color) {
+      obj.color = req.body.color;
+    }
+
+    const affectedRows = await Category.update(obj, {
+      where: { id }
+    });
+
+    // check if there are no affected rows
+    // cause that means the user didnt pass an id
+    // or they tried to pass an invalid id
+    if (!affectedRows[0]) {
+      throw Errors.sequelizeValidation(Sequelize, {
+        error: "Category id is not valid",
+        value: id
+      });
+    } else {
+      // otherwise return the updated data
+      const result = await Category.findById(id);
+      res.json(result.toJSON());
+    }
+  } catch (e) {
+    next(e);
+  }
+});
+
+// DELETE - remove a category
+router.delete("/:id", async (req, res, next) => {
+  try {
+    const category = await Category.findById(req.params.id);
+    //if nothing is returned
+    if (!category) {
+      throw Errors.sequelizeValidation(Sequelize, {
+        error: `Category id does not exist`,
+        value: req.params.id
+      });
+    }
+
+    // setup 'Other' category
+    const otherCategory = await Category.findOrCreate({
+      where: { name: "Other" },
+      defaults: { color: "#9a9a9a" }
+    });
+
+    // update the thread about the deletion,
+    // thread now falls under 'Other'
+    const transfer = await Thread.update(
+      {
+        CategoryId: otherCategory[0].id
+      },
+      {
+        where: { CategoryId: req.params.id }
+      }
+    );
+
+    // finally do the deletion
+    await category.destroy();
+
+    res.json({
+      success: true,
+      otherCategoryCreated: otherCategory[1] ? otherCategory : null
+    });
+  } catch (e) {
+    console.log(e);
+    next(e);
   }
 });
 
