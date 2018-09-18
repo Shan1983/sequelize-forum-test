@@ -38,6 +38,7 @@ app.use(session);
 
 // routes
 app.use("/api/v1/category", require("./routes/category"));
+app.use("/api/v1/thread", require("./routes/thread"));
 
 // general error handler
 app.use(require("./lib/errorHandler"));
