@@ -16,7 +16,9 @@ module.exports = (sequelize, DataTypes) => {
           msg: `Username already taken - try a different one`,
           fields: ["username"]
         },
+        allowNull: false,
         validate: {
+          notEmpty: true,
           len: {
             args: [4, 50],
             msg: `Username must be between 6 and 50 characters`

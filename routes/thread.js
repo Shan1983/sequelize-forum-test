@@ -40,7 +40,7 @@ router.post("/", async (req, res, next) => {
   let validationErrors = [];
 
   try {
-    // await Ban.canCreateThreads(req.session.username);
+    await Ban.canCreateThreads(req.session.username);
 
     const category = await Category.findOne({
       where: { value: req.body.category }
