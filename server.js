@@ -37,6 +37,7 @@ if (process.env.NODE_ENV === "production") {
 app.use(session);
 
 // routes
+app.use("/api/v1/user", require("./routes/user"));
 app.use("/api/v1/category", require("./routes/category"));
 app.use("/api/v1/thread", require("./routes/thread"));
 
