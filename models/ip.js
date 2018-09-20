@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       classMethods: {
         associate(models) {
-          Ip.belongsTo(models.User, { through: "UserIp" });
+          Ip.belongsToMany(models.User, { through: "UserIp" });
         },
         async createIfNotExists(ipAddress, user) {
           const existingIp = await Ip.findOne({

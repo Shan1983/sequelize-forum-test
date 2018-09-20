@@ -8,7 +8,7 @@ const Errors = require("../lib/errors");
 const {
   User,
   Post,
-  ProfilePicrure,
+  ProfilePicture,
   AdminToken,
   Thread,
   Category,
@@ -78,6 +78,7 @@ router.post("/", async (req, res, next) => {
     }
 
     const user = await User.create(userParams);
+
     await Ip.createIfNotExists(req.ip, user);
 
     setUserSession(req, res, user.username, user.id, userParams.admin);
@@ -130,7 +131,7 @@ router.get("/:username", async (req, res, next) => {
         `api/v1/category/ALL?username${rea.params.username}${queryStr}`
       );
     } else {
-      const user = await User.fondOne(queryObj);
+      const user = await User.findOne(queryObj);
       if (!user) {
         throw Errors.accountDoesNotExist;
       }
@@ -142,7 +143,7 @@ router.get("/:username", async (req, res, next) => {
 });
 
 // POST - user login
-router.post(":username/login", async (req, res, next) => {
+router.post("/:username/login", async (req, res, next) => {
   try {
     await Ban.isIpBanned(req.ip, req.params.username);
 
@@ -152,7 +153,7 @@ router.post(":username/login", async (req, res, next) => {
 
     if (user) {
       if (await user.comparePassword(req.body.password)) {
-        await Ip.createIfNotExist(req.ip, user);
+        await Ip.createIfNotExists(req.ip, user);
 
         setUserSession(req, res, user.username, user.id, user.admin);
 
@@ -192,7 +193,7 @@ router.post("/:username/logout", async (req, res, next) => {
 // GET - get the users profile picture
 router.get("/:username/picture", async (req, res, next) => {
   try {
-    user = await User.findOne({
+    const user = await User.findOne({
       where: { username: req.params.username }
     });
 
@@ -200,8 +201,8 @@ router.get("/:username/picture", async (req, res, next) => {
       throw Errors.accountDoesNotExist;
     }
 
-    const picture = await ProfilePicrure.findOne({
-      where: { userId: user.id }
+    const picture = await ProfilePicture.findOne({
+      where: { UserId: user.id }
     });
 
     if (!picture) {
@@ -227,41 +228,46 @@ const upload = multer({
 });
 
 // POST - upload a new profile picture
-router.post("/:username/picture", async (req, res, next) => {
-  try {
-    if (req.session.username !== req.params.username) {
-      throw Errors.requestNotAuthorized;
-    } else {
-      const user = await User.findById(req.session.userId);
-      const picture = await ProfilePicture.findOne({
-        where: { userId: user.id }
-      });
-      const pictureObj = {
-        file: req.file.buffer,
-        mimetype: req.file.mimetype
-      };
-
-      // if the user hasnt yet set up a picture
-      if (!picture) {
-        picture = await ProfilePicrure.create(pictureObj);
-        await picture.setUser(user);
+router.post(
+  "/:username/picture",
+  upload.single("picture"),
+  async (req, res, next) => {
+    try {
+      if (req.session.username !== req.params.username) {
+        throw Errors.requestNotAuthorized;
       } else {
-        await picture.update(pictureObj);
+        const user = await User.findById(req.session.userId);
+        let picture = await ProfilePicture.findOne({
+          where: { UserId: user.id }
+        });
+        console.log("params", req.params, "files: ", req.file.buffer);
+        const pictureObj = {
+          file: req.file.buffer,
+          mimetype: req.file.mimetype
+        };
+
+        // if the user hasnt yet set up a picture
+        if (!picture) {
+          picture = await ProfilePicture.create(pictureObj);
+          await picture.setUser(user);
+        } else {
+          await picture.update(pictureObj);
+        }
+
+        // hack to force the browser to reload background images
+        await user.update({
+          picture: `api/v1/user/${
+            req.session.username
+          }/picture?rand=${Date.now()}`
+        });
+
+        res.json(user.toJSON());
       }
-
-      // hack to force the browser to reload background images
-      await user.update({
-        picture: `api/v1/user/${
-          req.session.username
-        }/picture?rand=${Date.now()}`
-      });
-
-      res.json(user.toJSON());
+    } catch (e) {
+      next(e);
     }
-  } catch (e) {
-    next(e);
   }
-});
+);
 
 // DELETE - remove a users picture completely
 router.delete("/:username/picture", async (req, res, next) => {
@@ -270,7 +276,7 @@ router.delete("/:username/picture", async (req, res, next) => {
       throw Errors.requestNotAuthorized;
     } else {
       const user = await User.findById(req.session.userId);
-      const picture = await ProfilePicrure.findOne({
+      const picture = await ProfilePicture.findOne({
         where: { userId: user.id }
       });
 

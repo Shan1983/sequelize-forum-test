@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         validate: {
           len: {
-            args: [6, 50],
+            args: [4, 50],
             msg: `Username must be between 6 and 50 characters`
           },
           isString(val) {

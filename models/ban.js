@@ -112,7 +112,7 @@ module.exports = (sequelize, DataTypes) => {
             include: [
               {
                 model: Ip,
-                where: { ip }
+                where: { ip } // ip is a param
               }
             ]
           });
