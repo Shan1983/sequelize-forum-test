@@ -49,25 +49,18 @@ module.exports = (sequelize, DataTypes) => {
               `The category name can't be empty`
             );
           } else {
-            const cat_name = slug(category.name).toLowerCase();
+            const cat_name = slug(category.name).toUpperCase();
             category.value = cat_name;
           }
+        }
+      },
+      classMethods: {
+        associate(models) {
+          Category.hasMany(models.Thread);
         }
       }
     }
   );
-  Category.associate = function(models) {
-    Category.hasMany(models.Thread);
-  };
-  Category.prototype.includeOptions = (from, limit) => {
-    const models = sequelize.models;
 
-    return [
-      {
-        model: models.User,
-        attributes: ["username", "createdAt", "color", "picture", "updated"]
-      }
-    ];
-  };
   return Category;
 };

@@ -20,13 +20,16 @@ module.exports = (sequelize, DataTypes) => {
         }
       }
     },
-    {}
-  );
-  adminToken.prototype.isValid = () => {
-    const ms = Date.now() - this.createdAt;
-    const daysMs = 1000 * 60 * 60 * 24;
+    {
+      instanceMethods: {
+        isValid() {
+          const ms = Date.now() - this.createdAt;
+          const daysMs = 1000 * 60 * 60 * 24;
 
-    return ms / daysMs < 1;
-  };
+          return ms / daysMs < 1;
+        }
+      }
+    }
+  );
   return adminToken;
 };

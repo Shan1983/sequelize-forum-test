@@ -10,29 +10,32 @@ module.exports = (sequelize, DataTypes) => {
         }
       }
     },
-    {}
-  );
-  Ip.associate = function(models) {
-    Ip.belongsTo(models.User, { through: "UserIp" });
-  };
+    {
+      classMethods: {
+        associate(models) {
+          Ip.belongsTo(models.User, { through: "UserIp" });
+        },
+        async createIfNotExists(ipAddress, user) {
+          const existingIp = await Ip.findOne({
+            where: { ip: ipAddress },
+            include: [
+              {
+                model: sequelize.models.User,
+                where: { id: user.id }
+              }
+            ]
+          });
 
-  Ip.prototype.createIfNotExists = async (ipAddress, user) => {
-    const existingIp = await Ip.findOne({
-      where: { ip: ipAddress },
-      include: [
-        {
-          model: sequelize.models.User,
-          where: { id: user.id }
+          if (!existingIp) {
+            const ip = await Ip.create({
+              ip: ipAddress
+            });
+            await ip.addUser(user);
+          }
         }
-      ]
-    });
-
-    if (!existingIp) {
-      const ip = await Ip.create({
-        ip: ipAddress
-      });
-      await ip.addUser(user);
+      }
     }
-  };
+  );
+
   return Ip;
 };

@@ -38,80 +38,88 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: false
       }
     },
-    {}
-  );
-  Post.associate = function(models) {
-    Post.belongsTo(models.User);
-    Post.belongsTo(models.Thread);
-    Post.hasMany(models.Post, { as: "Replies", foreignKey: "replyId" });
-    Post.belongsToMany(models.User, { as: "Likes", through: "user_post" });
-    Post.hasMany(models.Report, {
-      foreignKeyConstraint: true,
-      onDelete: "CASCADE",
-      hooks: true
-    });
-  };
+    {
+      instanceMethods: {
+        getReplyingTo() {
+          return Post.findByPrimary(this.replyId);
+        },
 
-  Post.prototype.getReplyingTo = () => {
-    return Post.findByPrimary(this.replyId);
-  };
-
-  Post.prototype.setReplyingTo = post => {
-    return post.getUser().then(user => {
-      return this.update({
-        replyingToUsername: user.username,
-        replyId: post.id
-      });
-    });
-  };
-
-  Post.prototype.includeOptions = () => {
-    const models = sequelize.models;
-
-    return [
-      {
-        model: models.User,
-        attributes: ["username", "createdAt", "id", "color", "picture"]
+        setReplyingTo(post) {
+          return post.getUser().then(user => {
+            return this.update({
+              replyingToUsername: user.username,
+              replyId: post.id
+            });
+          });
+        }
       },
-      {
-        model: models.User,
-        as: "Likes",
-        attributes: ["username", "createdAt", "id", "color", "picture"]
-      },
-      { model: models.Thread, include: [models.Category] },
-      {
-        model: models.Post,
-        as: "Replies",
-        include: [
-          {
-            model: models.User,
-            attributes: ["username", "id", "color", "picture"]
+      classMethods: {
+        associate(models) {
+          Post.belongsTo(models.User);
+          Post.belongsTo(models.Thread);
+          Post.hasMany(models.Post, { as: "Replies", foreignKey: "replyId" });
+          Post.belongsToMany(models.User, {
+            as: "Likes",
+            through: "user_post"
+          });
+          Post.hasMany(models.Report, {
+            foreignKeyConstraint: true,
+            onDelete: "CASCADE",
+            hooks: true
+          });
+        },
+        includeOptions() {
+          const models = sequelize.models;
+
+          return [
+            {
+              model: models.User,
+              attributes: ["username", "createdAt", "id", "color", "picture"]
+            },
+            {
+              model: models.User,
+              as: "Likes",
+              attributes: ["username", "createdAt", "id", "color", "picture"]
+            },
+            { model: models.Thread, include: [models.Category] },
+            {
+              model: models.Post,
+              as: "Replies",
+              include: [
+                {
+                  model: models.User,
+                  attributes: ["username", "id", "color", "picture"]
+                }
+              ]
+            }
+          ];
+        },
+        async getReplyToPost(id, thread) {
+          const { Thread, User } = sequelize.models;
+
+          const replyingToPost = await Post.findById(id, {
+            include: [Thread, { model: User, attributes: ["username"] }]
+          });
+
+          if (!replyingToPost) {
+            throw Errors.invalidParameter(
+              "replyingToId",
+              "post does not exist"
+            );
+          } else if (replyingToPost.Thread.id !== thread.id) {
+            throw Errors.invalidParameter(
+              "replyingToId",
+              "replies must be in same thread"
+            );
+          } else if (replyingToPost.removed) {
+            throw Errors.postRemoved;
+          } else {
+            return replyingToPost;
           }
-        ]
+        }
       }
-    ];
-  };
-
-  Post.prototype.getReplyToPost = async (id, thread) => {
-    const { Thread, User } = sequelize.models;
-
-    const replyingToPost = await Post.findById(id, {
-      include: [Thread, { model: User, attributes: ["username"] }]
-    });
-
-    if (!replyingToPost) {
-      throw Errors.invalidParameter("replyingToId", "post does not exist");
-    } else if (replyingToPost.Thread.id !== thread.id) {
-      throw Errors.invalidParameter(
-        "replyingToId",
-        "replies must be in same thread"
-      );
-    } else if (replyingToPost.removed) {
-      throw Errors.postRemoved;
-    } else {
-      return replyingToPost;
     }
-  };
+  );
 
   return Post;
 };

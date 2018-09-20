@@ -25,12 +25,16 @@ module.exports = (sequelize, DataTypes) => {
         }
       }
     },
-    {}
+    {
+      classMethods: {
+        associate(models) {
+          Log.belongsTo(models.Thread);
+          Log.belongsTo(models.User);
+          Log.belongsTo(models.User, { as: "SessionUser" });
+        }
+      }
+    }
   );
-  Log.associate = function(models) {
-    Log.belongsTo(models.Thread);
-    Log.belongsTo(models.User);
-    Log.belongsTo(models.User, { as: "SessionUser" });
-  };
+
   return Log;
 };

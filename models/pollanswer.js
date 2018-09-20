@@ -21,10 +21,14 @@ module.exports = (sequelize, DataTypes) => {
         }
       }
     },
-    {}
+    {
+      classMethods: {
+        associate(models) {
+          PollAnswer.hasMany(models.PollVote);
+        }
+      }
+    }
   );
-  PollAnswer.associate = function(models) {
-    PollAnswer.hasMany(models.PollVote);
-  };
+
   return PollAnswer;
 };

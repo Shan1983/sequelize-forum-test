@@ -16,76 +16,81 @@ module.exports = (sequelize, DataTypes) => {
       },
       type: DataTypes.ENUM("mention", "thread update", "reply")
     },
-    {}
-  );
-  Notification.associate = function(models) {
-    Notification.hasOne(models.PostNotification);
-    Notification.belongsTo(models.User);
-  };
+    {
+      classMethods: {
+        associate(models) {
+          Notification.hasOne(models.PostNotification);
+          Notification.belongsTo(models.User);
+        },
+        async filterMentions(mentions) {
+          // if mentions is not an array of strings, kill it
+          if (
+            !Array.isArray(mentions) ||
+            mentions.filter(m => typeof m !== "string").length
+          ) {
+            throw Errors.sequelizeValidation(sequelize, {
+              error: `mentions must be an array of strings`,
+              value: mentions
+            });
+          }
 
-  Notification.prototype.filterMentions = mentions => {
-    // if mentions is not an array of strings, kill it
-    if (
-      !Array.isArray(mentions) ||
-      mentions.filter(m => typeof m !== "string").length
-    ) {
-      throw Errors.sequelizeValidation(sequelize, {
-        error: `mentions must be an array of strings`,
-        value: mentions
-      });
-    }
+          return mentions.filter((mention, pos, self) => {
+            return self.indexOf(mention) === pos;
+          });
+        },
+        //props include: username, usernameTo, post, amd type
+        async createPostNotification(props) {
+          const { PostNotification, User, Post } = sequelize.models;
 
-    return mentions.filter((mention, pos, self) => {
-      return self.indexOf(mention) === pos;
-    });
-  };
+          const userTo = await User.findOne({
+            where: { username: props.usernameTo }
+          });
 
-  //props include: username, usernameTo, post, amd type
-  Notification.prototype.createPostNotification = async props => {
-    const { PostNotification, User, Post } = sequelize.models;
+          if (!userTo) {
+            return null;
+          }
 
-    const userTo = await User.findOne({
-      where: { username: props.usernameTo }
-    });
+          const notification = await Notification.create({ type: props.type });
+          const postNotification = await PostNotification.create();
 
-    if (!userTo) {
-      return null;
-    }
+          await postNotification.setUser(props.userFrom);
+          await postNotification.setPost(props.post);
 
-    const notification = await Notification.create({ type: props.type });
-    const postNotification = await PostNotification.create();
+          await notification.setPostNotification(postNotification);
+          await notification.setUser(userTo);
 
-    await postNotification.setUser(props.userFrom);
-    await postNotification.setPost(props.post);
+          const reloadedNotification = await notification.reload({
+            include: [
+              {
+                model: PostNotification,
+                include: [
+                  Post,
+                  {
+                    model: User,
+                    attributes: ["createdAt", "username", "color"]
+                  }
+                ]
+              }
+            ]
+          });
 
-    await notification.setPostNotification(postNotification);
-    await notification.setUser(userTo);
-
-    const reloadedNotification = await notification.reload({
-      include: [
-        {
-          model: PostNotification,
-          include: [
-            Post,
-            { model: User, attributes: ["createdAt", "username", "color"] }
-          ]
+          return reloadedNotification;
         }
-      ]
-    });
+      },
+      instabceMethods: {
+        async emitNotificationMessage(ioUsers, io) {
+          const User = sequelize.models.User;
 
-    return reloadedNotification;
-  };
+          const user = await User.findById(this.userId);
 
-  Notification.prototype.emitNotificationMessage = async (ioUsers, io) => {
-    const User = sequelize.models.User;
-
-    const user = await User.findById(this.userId);
-
-    if (ioUsers[user.username]) {
-      console.log(ioUsers);
-      io.to(ioUsers[user.username]).emit("notification", this.toJSON());
+          if (ioUsers[user.username]) {
+            console.log(ioUsers);
+            io.to(ioUsers[user.username]).emit("notification", this.toJSON());
+          }
+        }
+      }
     }
-  };
+  );
 
   return Notification;
 };
