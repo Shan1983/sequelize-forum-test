@@ -21,6 +21,11 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     {
+      classMethods: {
+        associate(models) {
+          adminToken.hasOne(models.User, { foreignKey: "TokenId" });
+        }
+      },
       instanceMethods: {
         isValid() {
           const ms = Date.now() - this.createdAt;

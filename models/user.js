@@ -145,6 +145,7 @@ module.exports = (sequelize, DataTypes) => {
           User.hasMany(models.Post);
           User.hasMany(models.Thread);
           User.belongsToMany(models.Ip, { through: "UserIp" });
+          User.hasOne(models.AdminToken, { foreignKey: "UserId" });
         },
         includeOptions(from, limit) {
           const models = sequelize.models;
