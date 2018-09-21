@@ -11,6 +11,7 @@ const app = express();
 const { sequelize } = require("./models");
 
 // web sockets
+const sockets = require("./lib/sockets");
 
 // config - port, set session secret
 const port = process.env.PORT || 3000;
@@ -56,7 +57,10 @@ const main = () => {
     app.locals.appStarted = true;
 
     // emit started event
+    app.emit("appStarted");
   });
+
+  sockets.init(app, server, session);
 };
 
 // server setup

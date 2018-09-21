@@ -25,6 +25,18 @@ const {
 //     }
 // })
 
+// AUTH - ADMIN
+// router.all("*", (req, res, next) => {
+//   if (!req.session.admin) {
+//     res.status(401);
+//     res.json({
+//       errors: [Errors.requestNotAuthorized]
+//     });
+//   } else {
+//     next();
+//   }
+// });
+
 // GET - get a post by id
 router.get("/:post_id", async (req, res, next) => {
   try {
@@ -132,7 +144,82 @@ router.post("/", async (req, res, next) => {
         content: req.body.content,
         postNumber: thread.postsCount
       });
+
+      await post.setReplyingTo(replyingToPost);
+      await replyingToPost.addReplis(post);
+
+      const replyNotification = await Notification.createPostNotification({
+        usernameTo: replyingToPost.User.username,
+        userFrom: user,
+        type: "reply",
+        post: post
+      });
+
+      await replyNotification.emitNotificationMessage(
+        req.app.get("io-users"),
+        req.app.get("io")
+      );
+    } else {
+      post = await Post.create({
+        content: req.body.content,
+        postNumber: thread.postsCount
+      });
     }
+
+    await post.setUser(user);
+    await setThread(thread);
+    await thread.increment("postsCount");
+
+    if (uniqueMentions.length) {
+      const ioUsers = req.app.get("io-users");
+      const io = req.app.get("io");
+
+      uniqueMentions.forEach(async mention => {
+        const mentionNotification = await Notification.createPostNotification({
+          usernameTo: mention,
+          userFrom: user,
+          type: "mention",
+          post
+        });
+
+        await mentionNotification.emitNotificationMessage(ioUsers, io);
+      });
+    }
+
+    res.json(
+      await post.reload({
+        include: Post.includeOptions()
+      })
+    );
+
+    req.app
+      .get("io")
+      .to(`thread/${thread.id}`)
+      .emit("new post", {
+        postNumber: thread.postsCount,
+        content: post.content,
+        username: user.username
+      });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/:posy_id", async (req, res, next) => {
+  try {
+    const post = await Post.findById(req.params.post_id);
+    if (!post) {
+      throw Errors.sequelizeValidation(Sequelize, {
+        error: "post does not exist",
+        path: "id"
+      });
+    }
+
+    await post.update({
+      content: "[This post has been removed by an administrator]",
+      removed: true
+    });
+    res.json({ success: true });
   } catch (e) {
     next(e);
   }
