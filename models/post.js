@@ -27,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
               path: `content`
             });
           }
-          this.setDataVakue("content", marked(val));
+          this.setDataValue("content", marked(val));
         },
         allowNull: false
       },

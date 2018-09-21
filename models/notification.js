@@ -77,11 +77,11 @@ module.exports = (sequelize, DataTypes) => {
           return reloadedNotification;
         }
       },
-      instabceMethods: {
+      instanceMethods: {
         async emitNotificationMessage(ioUsers, io) {
           const User = sequelize.models.User;
 
-          const user = await User.findById(this.userId);
+          const user = await User.findById(this.UserId);
 
           if (ioUsers[user.username]) {
             console.log(ioUsers);

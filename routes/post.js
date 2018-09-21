@@ -62,14 +62,14 @@ router.put("/:post_id/like", async (req, res, next) => {
   try {
     const post = await Post.findById(req.params.post_id);
     const user = await User.findOne({
-      where: { username: req.sessiion.username }
+      where: { username: req.session.username }
     });
 
     if (!post) {
       throw Errors.invalidParameter("id", "post does not exist");
     }
 
-    if (post.userId === user.id) {
+    if (post.UserId === user.id) {
       throw Errors.cannotLikeOwnPost;
     }
 
@@ -114,7 +114,7 @@ router.post("/", async (req, res, next) => {
 
   try {
     // check if the user is banned
-    await Ban.canCreatePosts(req.session.username);
+    await Ban.canCreatePost(req.session.username);
 
     if (req.body.mentions) {
       uniqueMentions = Notification.filterMentions(req.body.mentions);
@@ -136,19 +136,16 @@ router.post("/", async (req, res, next) => {
     }
 
     if (req.body.replyingToId) {
-      replyingToPost = await Post.getReplyingToPost(
-        req.body.replyingToId,
-        thread
-      );
+      replyingToPost = await Post.getReplyToPost(req.body.replyingToId, thread);
       post = await Post.create({
         content: req.body.content,
         postNumber: thread.postsCount
       });
 
       await post.setReplyingTo(replyingToPost);
-      await replyingToPost.addReplis(post);
+      await replyingToPost.addReplies(post);
 
-      const replyNotification = await Notification.createPostNotification({
+      let replyNotification = await Notification.createPostNotification({
         usernameTo: replyingToPost.User.username,
         userFrom: user,
         type: "reply",
@@ -167,7 +164,7 @@ router.post("/", async (req, res, next) => {
     }
 
     await post.setUser(user);
-    await setThread(thread);
+    await post.setThread(thread);
     await thread.increment("postsCount");
 
     if (uniqueMentions.length) {
@@ -205,7 +202,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.delete("/:posy_id", async (req, res, next) => {
+router.delete("/:post_id", async (req, res, next) => {
   try {
     const post = await Post.findById(req.params.post_id);
     if (!post) {
