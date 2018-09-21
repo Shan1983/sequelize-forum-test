@@ -43,6 +43,7 @@ app.use("/api/v1/admin_token", require("./routes/adminToken"));
 app.use("/api/v1/category", require("./routes/category"));
 app.use("/api/v1/thread", require("./routes/thread"));
 app.use("/api/v1/post", require("./routes/post"));
+app.use("/api/v1/ban", require("./routes/ban"));
 
 // general error handler
 app.use(require("./lib/errorHandler"));
