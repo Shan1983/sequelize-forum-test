@@ -48,6 +48,7 @@ app.use("/api/v1/log", require("./routes/log"));
 app.use("/api/v1/notification", require("./routes/notifications"));
 app.use("/api/v1/poll", require("./routes/poll"));
 app.use("/api/v1/report", require("./routes/report"));
+app.use("/api/v1/search", require("./routes/search"));
 
 // general error handler
 app.use(require("./lib/errorHandler"));
