@@ -135,6 +135,10 @@ router.post("/", async (req, res, next) => {
       });
     }
 
+    if (thread.locked) {
+      throw Errors.threadLocked;
+    }
+
     if (req.body.replyingToId) {
       replyingToPost = await Post.getReplyToPost(req.body.replyingToId, thread);
       post = await Post.create({
@@ -171,16 +175,29 @@ router.post("/", async (req, res, next) => {
       const ioUsers = req.app.get("io-users");
       const io = req.app.get("io");
 
-      uniqueMentions.forEach(async mention => {
+      // uniqueMentions.forEach(async mention => {
+      //   const mentionNotification = await Notification.createPostNotification({
+      //     usernameTo: mention,
+      //     userFrom: user,
+      //     type: "mention",
+      //     post
+      //   });
+
+      //   await mentionNotification.emitNotificationMessage(ioUsers, io);
+      // });
+
+      for (const mention of uniqueMentions) {
         const mentionNotification = await Notification.createPostNotification({
           usernameTo: mention,
-          userFrom: user,
+          usernameFrom: user,
           type: "mention",
           post
         });
 
-        await mentionNotification.emitNotificationMessage(ioUsers, io);
-      });
+        if (mentionNotification) {
+          await mentionNotification.emitNotificationMessage(ioUsers, io);
+        }
+      }
     }
 
     res.json(

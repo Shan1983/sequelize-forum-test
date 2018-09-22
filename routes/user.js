@@ -358,18 +358,73 @@ router.delete("/:username", async (req, res, next) => {
 // GET - return all users that are admins
 router.get("/", async (req, res, next) => {
   try {
-    if (req.query.admin) {
-      const admins = await User.findAll({
-        where: { admin: true },
-        attributes: {
-          exclude: ["hash"]
-        }
-      });
+    // if (req.query.admin) {
+    //   const admins = await User.findAll({
+    //     where: { admin: true },
+    //     attributes: {
+    //       exclude: ["hash"]
+    //     }
+    //   });
 
-      res.json(admins);
+    //   res.json(admins);
+    // } else {
+    //   res.json({});
+    // }
+
+    const sortedFields = {
+      createdAt: "X.id",
+      username: "X.username",
+      threadCount: "threadCount",
+      postCount: "postCount"
+    };
+
+    const offset = Number.isInteger(+req.query.offset) ? +req.query.offset : 0;
+    let havingClause = "";
+
+    if (req.query.role === "admin") {
+      havingClause = "HAVING Users.admin = true";
+    } else if (req.query.role) {
+      havingClause = "HAVING Users.admin = false";
     } else {
-      res.json({});
+      havingClause = "";
     }
+
+    if (req.query.search) {
+      if (!havingClause.length) {
+        havingClause = "HAVING ";
+      } else {
+        havingClause += " AND ";
+      }
+
+      havingClause += "Users.username LIKE $search";
+    }
+
+    const sql = `
+    SELECT X.username, X.admin, X.createdAt, X.postCount, COUNT(Threads.id) as threadCount
+    FROM (
+      SELECT Users.*, COUNT(Posts.id) as postCount
+      FROM Users
+      LEFT OUTTER JOIN Posts
+      ON Users.id = Posts.UserId
+      GROUP BY Users.id
+      ${havingClause}
+    ) as X
+    LEFT OUTTER JOIN threads
+    ON X.id = Threads.UserId
+    GROUP BY X.id
+    ORDER BY ${sortedFields[req.query.sort] || "X.id"}${
+      req.query.order === "asc" ? "ASC" : "DESC"
+    }
+    LIMIT 15
+    OFFSET ${offset}
+    `;
+
+    const users = await Sequelize.query(sql, {
+      model: User,
+      bind: { search: `${req.query.search}%` }
+    });
+
+    res.json(users);
   } catch (e) {
     next(e);
   }

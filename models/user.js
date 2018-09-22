@@ -177,7 +177,10 @@ module.exports = (sequelize, DataTypes) => {
                 throw Errors.invalidToken;
               }
             } else {
-              throw Errors.missingParameter("token");
+              throw Errors.sequelizeValidation(sequelize, {
+                error: "Missing token",
+                path: "token"
+              });
             }
           } else {
             return true;
