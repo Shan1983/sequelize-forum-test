@@ -44,6 +44,7 @@ app.use("/api/v1/category", require("./routes/category"));
 app.use("/api/v1/thread", require("./routes/thread"));
 app.use("/api/v1/post", require("./routes/post"));
 app.use("/api/v1/ban", require("./routes/ban"));
+app.use("/api/v1/log", require("./routes/log"));
 
 // general error handler
 app.use(require("./lib/errorHandler"));
