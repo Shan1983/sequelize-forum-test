@@ -5,6 +5,8 @@ const SequelizeStore = require("connect-session-sequelize")(
   expressSession.Store
 );
 const path = require("path");
+const helmet = require("helmet");
+const compression = require("compression");
 const app = express();
 
 // models
@@ -18,6 +20,8 @@ const port = process.env.PORT || 3000;
 const sessionSecret = process.env.SESSION_SECRET || "shhh its secret";
 
 // middlewares
+app.use(helmet());
+app.use(compression());
 app.use(bodyParser.json({ limit: "5mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -29,8 +33,10 @@ const session = expressSession({
   saveUninitialized: true,
   store: sessionStore
 });
+
 // set up the intial session
 sessionStore.sync().then(response => console.log("database has been synced"));
+
 // set proxy if in production
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
@@ -54,7 +60,8 @@ app.use("/api/v1/settings", require("./routes/settings"));
 // general error handler
 app.use(require("./lib/errorHandler"));
 
-// set static assets
+// set static html page for frontend
+// TODO: add app.use and path to handle html for SPA
 
 // start everything up
 const main = () => {
